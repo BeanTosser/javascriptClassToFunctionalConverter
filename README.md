@@ -1,0 +1,2 @@
+# javascriptClassToFunctionalConverter
+Created with CodeSandbox
