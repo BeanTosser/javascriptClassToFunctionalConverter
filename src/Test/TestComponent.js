@@ -3,7 +3,7 @@ import React from "react";
 class bumfuq extends React.Component {
   constructor(props) {
     super(props);
-    state = {
+    this.state = {
       var1: val1,
       var2: val2
     };

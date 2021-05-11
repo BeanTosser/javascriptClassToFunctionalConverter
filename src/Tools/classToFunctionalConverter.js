@@ -27,15 +27,20 @@ export default function (componentString) {
    *     to functional declaration
    */
 
+  // Position trackers - remember where state was set etc. in order to change programatically later
+  let initializeStatePosition, endIntializeStatePosition;
+
   // REGEX PATTERNS
   const regexPatterns = {
-    classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/,
+    classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
-    constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)((?: {2}).*\n)*)/m //(.*(?=\n *})\n) *}/m
+    constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
+    initializeStateRegex: /(?: *this.state ?= ?{ *\n)((.+\n+)+?(?= *}))(?: *};? *\n)/gim
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
-    constructorReplacement: "const [$3, set$3] = useState($4);"
+    constructorReplacement: "$2",
+    initializeStateReplacement: "$1"
   };
 
   componentString = componentString.replace(
@@ -45,6 +50,10 @@ export default function (componentString) {
   componentString = componentString.replace(
     regexPatterns.constructorRegex,
     replacements.constructorReplacement
+  );
+  componentString = componentString.replace(
+    regexPatterns.initializeStateRegex,
+    replacements.initializeStateReplacement
   );
 
   return componentString;
