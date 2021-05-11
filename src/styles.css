@@ -1,0 +1,20 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+textarea {
+  resize: none;
+  font-family: sans-serif;
+}
+
+.TextEntry {
+  height: 400px;
+  width: 800px;
+}
+
+.TextDisplay {
+  height: 400px;
+  width: 800px;
+  font-size: 14px;
+}
