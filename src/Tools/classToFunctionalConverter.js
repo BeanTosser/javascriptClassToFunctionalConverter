@@ -5,12 +5,12 @@ export default function (componentString) {
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
     initializeStateRegex: /(?: *this.state ?= ?{ *\n)((.+\n+)+?(?= *}))(?: *};? *\n)/gim,
-    setStateVarRegex: / *(\S*)?(?=:): (\S*),? *\n?/gy
+    setStateVarRegex: /( *)(\S*)?(?=:): (\S*)(?=,)? *\n?/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
     constructorReplacement: "$2",
-    initializeStateReplacement: "$1"
+    initializeStateReplacement: "$1const [$2, set$2] = useState($3);\n"
   };
   /*
   componentString = componentString.replace(
@@ -32,17 +32,21 @@ export default function (componentString) {
   );
   // If state initialization exists
   if (initializeStatePosition >= 0) {
+    console.log("replacing state initialization...");
     // Create a copy of the string omitting everything _before_ state initialization
     // just in case the code sets any other object values before the state initialization
     let codeFromStateInitialization = componentString.slice(
       initializeStatePosition,
       componentString.length
     );
-    while (regexPatterns.setStateVarRegex.exec(codeFromStateInitialization)) {
-      console.log("Found a match");
+    let match = regexPatterns.setStateVarRegex.exec(
+      codeFromStateInitialization
+    );
+    console.log("Match: " + match);
+    for (let i = 0; i < match.length; i++) {
       codeFromStateInitialization = codeFromStateInitialization.replace(
         regexPatterns.setStateVarRegex,
-        ""
+        replacements.initializeStateReplacement
       );
     }
     // COncat everything before the state initializatin position and the newly modified code

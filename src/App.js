@@ -15,7 +15,6 @@ export default function App() {
 
   const setText = function (text) {
     setConvertedCode(classToFunctionalConverter(text));
-    console.log("converted code: " + convertedCode);
   };
 
   return (
