@@ -5,7 +5,7 @@ export default function (componentString) {
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
     initializeStateRegex: /(?: *this.state ?= ?{ *\n)((.+\n+)+?(?= *}))(?: *};? *\n)/gim,
-    setStateVarRegex: / *(\S*)?(?=:): (\S*),? *\n?/y
+    setStateVarRegex: / *(\S*)?(?=:): (\S*),? *\n?/gy
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
@@ -24,7 +24,7 @@ export default function (componentString) {
 */
   console.log("Searching for state initialization...");
   // Find position in the code where state is initialized (denoted by "this.state =")
-  let initializeStatePosition = componentString.indexOf(
+  let initializeStatePosition = componentString.search(
     regexPatterns.initializeStateRegex
   );
   console.log(
@@ -39,6 +39,7 @@ export default function (componentString) {
       componentString.length
     );
     while (regexPatterns.setStateVarRegex.exec(codeFromStateInitialization)) {
+      console.log("Found a match");
       codeFromStateInitialization = codeFromStateInitialization.replace(
         regexPatterns.setStateVarRegex,
         ""
