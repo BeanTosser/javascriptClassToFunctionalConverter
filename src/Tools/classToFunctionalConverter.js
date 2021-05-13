@@ -5,12 +5,13 @@ export default function (componentString) {
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
     initializeStateRegex: /(?: *this.state ?= ?{ *\n)((.+\n+)+?(?= *}))(?: *};? *\n)/gim,
-    setStateVarRegex: /( *)(\S*)?(?=:): (\S*)(?=,)? *\n?/g
+    setStateVarRegex: /( *)((\S)(\S*))(?=:): ((\S)(\S*))(?=,)?,? *\n?/g,
+    useStateSetter: /(set([a-z]))(?<=(const \[\2([a-zA-Z0-9_]*)\]) = useState))/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
     constructorReplacement: "$2",
-    initializeStateReplacement: "$1const [$2, set$2] = useState($3);\n"
+    initializeStateReplacement: "$1const [$2$3, set$2$3] = useState($3);\n"
   };
   /*
   componentString = componentString.replace(
@@ -48,6 +49,21 @@ export default function (componentString) {
         regexPatterns.setStateVarRegex,
         replacements.initializeStateReplacement
       );
+    }
+    // The first letter of the var name should be Uppercase in the
+    // setter function name for proper camel casing
+    match = regexPatterns.useStateSetter.exec(codeFromStateInitialization);
+    for (let i = 0; i < match.length; i++) {
+      let matchIndex = match[i].index;
+      let character = codeFromStateInitialization.charAt(matchIndex);
+      character = character.toUpper();
+      codeFromStateInitialization =
+        codeFromStateInitialization.subString(0, matchIndex) +
+        character +
+        codeFromStateInitialization.subString(
+          matchIndex,
+          codeFromStateInitialization.length
+        );
     }
     // COncat everything before the state initializatin position and the newly modified code
     // and put it back into componentString
