@@ -4,14 +4,14 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    initializeStateRegex: /(?: *this.state ?= ?{ *\n)((.+\n+)+?(?= *}))(?: *};? *\n)/gim,
-    setStateVarRegex: /([a-z]\w*): ([^\s,]*)/g,
+    initializeStateRegex: /(?: *this.state ?= ?{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
+    setStateVarRegex: /([a-z]\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
     constructorReplacement: "$2",
-    initializeStateReplacement: "const [$1, set$1] = useState($2);\n"
+    initializeStateReplacement: "const [$1, set$1] = useState($2);"
   };
 
   componentString = componentString.replace(
@@ -27,10 +27,19 @@ export default function (componentString) {
   let initializeStateRegexMatch = componentString.match(
     regexPatterns.initializeStateRegex
   );
+  console.log("match: " + initializeStateRegexMatch);
   let initializeStateRange = [
     initializeStateRegexMatch.index,
-    initializeStateRegexMatch.index + initializeStateRegexMatch.length
+    initializeStateRegexMatch.index + initializeStateRegexMatch[0].length
   ];
+  console.log("Match range: " + initializeStateRange);
+  console.log(
+    "string in this range: " +
+      componentString.substring(
+        initializeStateRange[0],
+        initializeStateRange[1]
+      )
+  );
 
   // If state initialization exists
   if (initializeStateRange[0] >= 0) {
@@ -76,28 +85,6 @@ export default function (componentString) {
       );
     }
 
-    /*
-    match = regexPatterns.useStateSetter.exec(stateInitializationCode);
-    for (let i = 0; i < match.length; i++) {
-      console.log("match[i]: " + match[i]);
-      let matchIndex = match[i].index;
-      console.log("matchIndex: " + matchIndex);
-      // matchIndex is the index of the word "set" in "setvarName".
-      // In this case, we need to replace the lowercase "v" with a "V",
-      // which appears 3 characters after the match position.
-      let character = stateInitializationCode.charAt(matchIndex);
-      console.log("Char: " + character);
-      character = character.toUpperCase();
-      console.log("Upper char: " + character);
-      stateInitializationCode =
-        stateInitializationCode.substring(0, matchIndex) +
-        character +
-        stateInitializationCode.substring(
-          matchIndex,
-          stateInitializationCode.length
-        );
-    }
-    */
     // COncat everything before the state initializatin position and the newly modified code
     // and put it back into componentString
     componentString =
