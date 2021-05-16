@@ -5,7 +5,7 @@ export default function (componentString) {
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
     initializeStateRegex: /(?: *this.state ?= ?{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
-    setStateVarRegex: /([a-z]\w*): ([^\s,]*),?/g,
+    setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
   };
   const replacements = {
@@ -50,6 +50,39 @@ export default function (componentString) {
       initializeStateRange[0],
       initializeStateRange[1]
     );
+
+    console.log(
+      "Testing setStateVarRegex: " +
+        stateInitializationCode.search(regexPatterns.setStateVarRegex)
+    );
+
+    stateInitializationCode = stateInitializationCode.replace(
+      regexPatterns.setStateVarRegex,
+      function (p1, p2, p3, p4) {
+        console.log(
+          "Making a replacement: " +
+            "const [" +
+            p1 +
+            ", set" +
+            p2 +
+            p3 +
+            "] = useState(p4);"
+        );
+        return (
+          "const [" +
+          p2 +
+          p3 +
+          ", set" +
+          p2.toUpperCase() +
+          p3 +
+          "] = useState(" +
+          p4 +
+          ")"
+        );
+      }
+    );
+
+    /*
     let match = regexPatterns.setStateVarRegex.exec(stateInitializationCode);
     console.log("Match: " + match);
     for (let i = 0; i < match.length; i++) {
@@ -61,6 +94,8 @@ export default function (componentString) {
     console.log(
       "code after replacing state var decs: " + stateInitializationCode
     );
+
+    */
     // The first letter of the var name should be Uppercase in the
     // setter function name for proper camel casing
     let useStatePosition = stateInitializationCode.search(
@@ -84,7 +119,10 @@ export default function (componentString) {
         regexPatterns.useStateSetter
       );
     }
-
+    console.log(
+      "stateInitializationCode when all's said and done: " +
+        stateInitializationCode
+    );
     // COncat everything before the state initializatin position and the newly modified code
     // and put it back into componentString
     componentString =
