@@ -5,7 +5,7 @@ export default function (componentString) {
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
     initializeStateRegex: /(?: *this.state ?={ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
-    setStateRegex:
+    setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
   };
@@ -14,8 +14,8 @@ export default function (componentString) {
     constructorReplacement: "$2",
     initializeStateReplacement: "const [$1, set$1] = useState($2);"
   };
-  
-   //Replace class definition with function definition
+
+  //Replace class definition with function definition
   componentString = componentString.replace(
     regexPatterns.classDeclarationRegex,
     replacements.classDeclarationReplacement
@@ -117,12 +117,19 @@ export default function (componentString) {
         componentString.length
       );
   }
-  
+
+  const replaceStateModifier = function (
+    blockRegex,
+    blockReplacement,
+    lineRegex,
+    lineReplacement
+  ) {};
+
   /*
    * Now do the same general thing as above for every setState() call
-   * note that instead of declaring the useState vars and setters, 
+   * note that instead of declaring the useState vars and setters,
    * you are just replacing "var: value" with "setVar(value)"
    */
-  
+
   return componentString;
 }
