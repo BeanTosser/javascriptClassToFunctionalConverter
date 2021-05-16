@@ -4,7 +4,8 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    initializeStateRegex: /(?: *this.state ?= ?{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
+    initializeStateRegex: /(?: *this.state ?={ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
+    setStateRegex:
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
   };
@@ -13,11 +14,13 @@ export default function (componentString) {
     constructorReplacement: "$2",
     initializeStateReplacement: "const [$1, set$1] = useState($2);"
   };
-
+  
+   //Replace class definition with function definition
   componentString = componentString.replace(
     regexPatterns.classDeclarationRegex,
     replacements.classDeclarationReplacement
   );
+  // Remove constructor declaration and its closing "}"
   componentString = componentString.replace(
     regexPatterns.constructorRegex,
     replacements.constructorReplacement
@@ -27,11 +30,11 @@ export default function (componentString) {
   let initializeStateRegexMatch = componentString.match(
     regexPatterns.initializeStateRegex
   );
-  console.log("match: " + initializeStateRegexMatch);
   let initializeStateRange = [
     initializeStateRegexMatch.index,
     initializeStateRegexMatch.index + initializeStateRegexMatch[0].length
   ];
+
   console.log("Match range: " + initializeStateRange);
   console.log(
     "string in this range: " +
@@ -49,11 +52,6 @@ export default function (componentString) {
     let stateInitializationCode = componentString.slice(
       initializeStateRange[0],
       initializeStateRange[1]
-    );
-
-    console.log(
-      "Testing setStateVarRegex: " +
-        stateInitializationCode.search(regexPatterns.setStateVarRegex)
     );
 
     stateInitializationCode = stateInitializationCode.replace(
@@ -82,20 +80,6 @@ export default function (componentString) {
       }
     );
 
-    /*
-    let match = regexPatterns.setStateVarRegex.exec(stateInitializationCode);
-    console.log("Match: " + match);
-    for (let i = 0; i < match.length; i++) {
-      stateInitializationCode = stateInitializationCode.replace(
-        regexPatterns.setStateVarRegex,
-        replacements.initializeStateReplacement
-      );
-    }
-    console.log(
-      "code after replacing state var decs: " + stateInitializationCode
-    );
-
-    */
     // The first letter of the var name should be Uppercase in the
     // setter function name for proper camel casing
     let useStatePosition = stateInitializationCode.search(
@@ -130,14 +114,15 @@ export default function (componentString) {
       stateInitializationCode +
       componentString.slice(
         initializeStateRange[1] + 1,
-        stateInitializationCode.length
+        componentString.length
       );
   }
+  
   /*
-  componentString = componentString.replace(
-    regexPatterns.initializeStateRegex,
-    replacements.initializeStateReplacement
-  );
-*/
+   * Now do the same general thing as above for every setState() call
+   * note that instead of declaring the useState vars and setters, 
+   * you are just replacing "var: value" with "setVar(value)"
+   */
+  
   return componentString;
 }
