@@ -1,3 +1,5 @@
+import replaceStateModifier from "./replaceStateModifier.js";
+
 export default function (componentString) {
   // REGEX PATTERNS
   const regexPatterns = {
@@ -47,19 +49,10 @@ export default function (componentString) {
       initializeStateRange[1]
     );
 
-    console.log(
-      "Regex search result: " +
-        stateInitializationCode.search(regexPatterns.initializeStateRegex)
-    );
-
     // Remove state = assignement and corresponding closing bracket
     stateInitializationCode = stateInitializationCode.replace(
       regexPatterns.initializeStateRegex,
       replacements.initializeStateReplacement
-    );
-
-    console.log(
-      "State initialization after replacement: " + stateInitializationCode
     );
 
     // Replace state variable declarations with useState() declarations
@@ -99,19 +92,6 @@ export default function (componentString) {
         componentString.length
       );
   }
-
-  const replaceStateModifier = function (
-    blockRegex,
-    blockReplacement,
-    lineRegex,
-    lineReplacement
-  ) {};
-
-  /*
-   * Now do the same general thing as above for every setState() call
-   * note that instead of declaring the useState vars and setters,
-   * you are just replacing "var: value" with "setVar(value)"
-   */
 
   return componentString;
 }
