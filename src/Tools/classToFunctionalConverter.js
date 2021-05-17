@@ -4,7 +4,7 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    initializeStateRegex: /(?: *this.state ?= ?{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?\n/,
+    initializeStateRegex: /(?: *this.state ?= ?{ *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)};?\n/,
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
@@ -12,7 +12,7 @@ export default function (componentString) {
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
     constructorReplacement: "$2",
-    initializeStateReplacement: "$2",
+    initializeStateReplacement: "$1",
     initializeStateVariableReplacement: "const [$1, set$1] = useState($2);"
   };
 
@@ -40,17 +40,26 @@ export default function (componentString) {
 
   // If state initialization exists
   if (initializeStateRange[0] >= 0) {
-    // Create a copy of the string omitting everything _before and after_ state initialization
+    // Create a copy of the string, omitting everything _before and after_ state initialization
     // just in case the code sets any other object values before the state initialization
     let stateInitializationCode = componentString.slice(
       initializeStateRange[0],
       initializeStateRange[1]
     );
 
+    console.log(
+      "Regex search result: " +
+        stateInitializationCode.search(regexPatterns.initializeStateRegex)
+    );
+
     // Remove state = assignement and corresponding closing bracket
-    stateInitializationCode.replace(
+    stateInitializationCode = stateInitializationCode.replace(
       regexPatterns.initializeStateRegex,
       replacements.initializeStateReplacement
+    );
+
+    console.log(
+      "State initialization after replacement: " + stateInitializationCode
     );
 
     // Replace state variable declarations with useState() declarations
