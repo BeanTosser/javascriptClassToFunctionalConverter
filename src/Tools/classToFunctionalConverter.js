@@ -6,7 +6,7 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    initializeStateRegex: /(?: *this.state ?= ?{ *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)};?\n/,
+    modifyStateRegex: /(?: *((this.state ?= ?{)|(this.setState\({)) *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)}\)?;?\n/,
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
@@ -28,6 +28,19 @@ export default function (componentString) {
     regexPatterns.constructorRegex,
     replacements.constructorReplacement
   );
+
+  // Store all instances of state modifying blocks in "match"
+  let match = componentString.match(regexPatterns.modifyStateRegex);
+
+  // Obtain the substring of each state-modifying block and pass it
+  // To the replaceStateModifier function
+  for (let i = 0; i < match.length; i++) {
+    let matchRange = [match.index, match.index];
+    for (let j = 0; j < i; j++) {
+      matchRange[0] += match[j].length;
+    }
+    matchRange[1] = matchRange[0] + match[i].length;
+  }
 
   //***
   // Find position in the code where state is initialized (denoted by "this.state =")

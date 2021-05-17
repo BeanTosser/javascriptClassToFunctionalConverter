@@ -16,29 +16,23 @@ export default function replaceStateModifier(
   //***
   // Find position ins the code where state is initialized (denoted by "this.state =")
   //***
-  let initializeStateRegexMatch = str.match(pattern);
-  let initializeStateRange = [
-    initializeStateRegexMatch.index,
-    initializeStateRegexMatch.index + initializeStateRegexMatch[0].length
+  let codeBlockRegexMatch = str.match(pattern);
+  let codeBlockRange = [
+    codeBlockRegexMatch.index,
+    codeBlockRegexMatch.index + codeBlockRegexMatch[0].length
   ];
 
   // If state initialization exists
-  if (initializeStateRange[0] >= 0) {
+  if (codeBlockRange[0] >= 0) {
     // Create a copy of the string, omitting everything _before and after_ state initialization
     // just in case the code sets any other object values before the state initialization
-    let stateInitializationCode = str.slice(
-      initializeStateRange[0],
-      initializeStateRange[1]
-    );
+    let codeBlockString = str.slice(codeBlockRange[0], codeBlockRange[1]);
 
     // Remove state = assignement and corresponding closing bracket
-    stateInitializationCode = stateInitializationCode.replace(
-      pattern,
-      patternReplacement
-    );
+    codeBlockString = codeBlockString.replace(pattern, patternReplacement);
 
     // Replace state variable declarations with useState() declarations
-    stateInitializationCode = stateInitializationCode.replace(
+    codeBlockString = codeBlockString.replace(
       subPattern,
       subPatternReplacementFunction
     );
@@ -46,9 +40,9 @@ export default function replaceStateModifier(
     // COncat everything before the state initializatin position and the newly modified code
     // and put it back into str
     str =
-      str.slice(0, initializeStateRange[0]) +
-      stateInitializationCode +
-      str.slice(initializeStateRange[1] + 1, str.length);
+      str.slice(0, codeBlockRange[0]) +
+      codeBlockString +
+      str.slice(codeBlockRange[1] + 1, str.length);
 
     return str;
   }
