@@ -34,13 +34,25 @@ export default function (componentString) {
 
   // Obtain the substring of each state-modifying block and pass it
   // To the replaceStateModifier function
+  let lastMatchEndIndex = 0;
+  let componentStringSections = [];
   for (let i = 0; i < match.length; i++) {
+    componentStringSections.push(
+      componentString.substring(lastMatchEndIndex, match.index)
+    );
     let matchRange = [match.index, match.index];
     for (let j = 0; j < i; j++) {
       matchRange[0] += match[j].length;
     }
     matchRange[1] = matchRange[0] + match[i].length;
+    lastMatchEndIndex = matchRange[1];
+    let modifiedBlock = replaceStateModifier(
+      componentString.substring(matchRange[0], matchRange[1])
+    );
+    componentStringSections.push(modifiedBlock);
   }
+  componentStringSections.push(componentString.substring(lastMatchEndIndex));
+  componentString = componentStringSections;
 
   //***
   // Find position in the code where state is initialized (denoted by "this.state =")
