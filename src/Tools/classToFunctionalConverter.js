@@ -18,6 +18,29 @@ export default function (componentString) {
     initializeStateVariableReplacement: "const [$1, set$1] = useState($2);"
   };
 
+  const replaceStateInitialization = function (p1, p2, p3, p4) {
+    console.log(
+      "Making a replacement: " +
+        "const [" +
+        p1 +
+        ", set" +
+        p2 +
+        p3 +
+        "] = useState(p4);"
+    );
+    return (
+      "const [" +
+      p2 +
+      p3 +
+      ", set" +
+      p2.toUpperCase() +
+      p3 +
+      "] = useState(" +
+      p4 +
+      ")"
+    );
+  };
+
   //Replace class definition with function definition
   componentString = componentString.replace(
     regexPatterns.classDeclarationRegex,
@@ -41,82 +64,21 @@ export default function (componentString) {
       componentString.substring(lastMatchEndIndex, match.index)
     );
     let matchRange = [match.index, match.index];
+
+    //inneficient - just keep track of the last "last" index and add to that instead
     for (let j = 0; j < i; j++) {
       matchRange[0] += match[j].length;
     }
+
     matchRange[1] = matchRange[0] + match[i].length;
     lastMatchEndIndex = matchRange[1];
     let modifiedBlock = replaceStateModifier(
-      componentString.substring(matchRange[0], matchRange[1])
+      componentString.substring(matchRange[0], matchRange[1]),
+      replaceStateInitialization
     );
     componentStringSections.push(modifiedBlock);
   }
   componentStringSections.push(componentString.substring(lastMatchEndIndex));
   componentString = componentStringSections;
-
-  //***
-  // Find position in the code where state is initialized (denoted by "this.state =")
-  //***
-  let initializeStateRegexMatch = componentString.match(
-    regexPatterns.initializeStateRegex
-  );
-  let initializeStateRange = [
-    initializeStateRegexMatch.index,
-    initializeStateRegexMatch.index + initializeStateRegexMatch[0].length
-  ];
-
-  // If state initialization exists
-  if (initializeStateRange[0] >= 0) {
-    // Create a copy of the string, omitting everything _before and after_ state initialization
-    // just in case the code sets any other object values before the state initialization
-    let stateInitializationCode = componentString.slice(
-      initializeStateRange[0],
-      initializeStateRange[1]
-    );
-
-    // Remove state = assignement and corresponding closing bracket
-    stateInitializationCode = stateInitializationCode.replace(
-      regexPatterns.initializeStateRegex,
-      replacements.initializeStateReplacement
-    );
-
-    // Replace state variable declarations with useState() declarations
-    stateInitializationCode = stateInitializationCode.replace(
-      regexPatterns.setStateVarRegex,
-      function (p1, p2, p3, p4) {
-        console.log(
-          "Making a replacement: " +
-            "const [" +
-            p1 +
-            ", set" +
-            p2 +
-            p3 +
-            "] = useState(p4);"
-        );
-        return (
-          "const [" +
-          p2 +
-          p3 +
-          ", set" +
-          p2.toUpperCase() +
-          p3 +
-          "] = useState(" +
-          p4 +
-          ")"
-        );
-      }
-    );
-
-    // COncat everything before the state initializatin position and the newly modified code
-    // and put it back into componentString
-    componentString =
-      componentString.slice(0, initializeStateRange[0]) +
-      stateInitializationCode +
-      componentString.slice(
-        initializeStateRange[1] + 1,
-        componentString.length
-      );
-  }
-
   return componentString;
 }
