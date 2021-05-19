@@ -72,6 +72,7 @@ export default function (componentString) {
 
     matchRange[1] = matchRange[0] + match[i].length;
     lastMatchEndIndex = matchRange[1];
+
     let modifiedBlock = replaceStateModifier(
       componentString.substring(matchRange[0], matchRange[1]),
       replaceStateInitialization

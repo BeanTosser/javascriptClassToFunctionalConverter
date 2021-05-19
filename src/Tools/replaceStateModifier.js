@@ -8,42 +8,15 @@
 
 export default function replaceStateModifier(
   str,
-  pattern,
-  subPattern,
-  patternReplacement,
   subPatternReplacementFunction
 ) {
-  //***
-  // Find position ins the code where state is initialized (denoted by "this.state =")
-  //***
-  let codeBlockRegexMatch = str.match(pattern);
-  let codeBlockRange = [
-    codeBlockRegexMatch.index,
-    codeBlockRegexMatch.index + codeBlockRegexMatch[0].length
-  ];
+  // First, remove the outer assignment or setState() call and closing bracket
+  let regexPattern = /(?:(?:.*|\s*){\s)([\s\S]*)(?:[^\S\n\r]*)(?:s*}[^\S\n\r]*\)?;?\s*)/;
+  str = str.replace(regexPattern, "$1");
 
-  // If state initialization exists
-  if (codeBlockRange[0] >= 0) {
-    // Create a copy of the string, omitting everything _before and after_ state initialization
-    // just in case the code sets any other object values before the state initialization
-    let codeBlockString = str.slice(codeBlockRange[0], codeBlockRange[1]);
+  regexPattern = /([a-z])(\w*): ([^\s,]*),?/g;
+  // Next, apply the subPatternReplacementFunction to the string
+  str = str.replace(regexPattern, subPatternReplacementFunction);
 
-    // Remove state = assignement and corresponding closing bracket
-    codeBlockString = codeBlockString.replace(pattern, patternReplacement);
-
-    // Replace state variable declarations with useState() declarations
-    codeBlockString = codeBlockString.replace(
-      subPattern,
-      subPatternReplacementFunction
-    );
-
-    // COncat everything before the state initializatin position and the newly modified code
-    // and put it back into str
-    str =
-      str.slice(0, codeBlockRange[0]) +
-      codeBlockString +
-      str.slice(codeBlockRange[1] + 1, str.length);
-
-    return str;
-  }
+  return str;
 }
