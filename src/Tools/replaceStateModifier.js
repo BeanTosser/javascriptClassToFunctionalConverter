@@ -11,6 +11,7 @@ export default function replaceStateModifier(
   subPatternReplacementFunction
 ) {
   // First, remove the outer assignment or setState() call and closing bracket
+  console.log("str before replace: " + str);
   let regexPattern = /(?:(?:.*|\s*){\s)([\s\S]*)(?:[^\S\n\r]*)(?:s*}[^\S\n\r]*\)?;?\s*)/;
   str = str.replace(regexPattern, "$1");
   console.log("str: " + str);

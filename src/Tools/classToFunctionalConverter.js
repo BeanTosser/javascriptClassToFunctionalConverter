@@ -18,18 +18,18 @@ export default function (componentString) {
     initializeStateVariableReplacement: "const [$1, set$1] = useState($2);"
   };
 
-  const replaceStateInitialization = function (p1, p2, p3) {
-    console.log("Making a replacement of " + p1 + ", " + p2 + ", " + p3);
+  const replaceStateInitialization = function (p1, p2, p3, p4) {
+    console.log("Making a replacement of " + p2 + ", " + p3 + ", " + p4);
     return (
       "const [" +
-      p1 +
       p2 +
-      ", set" +
-      p1.toUpperCase() +
-      p2 +
-      "] = useState(" +
       p3 +
-      ")"
+      ", set" +
+      p2.toUpperCase() +
+      p3 +
+      "] = useState(" +
+      p4 +
+      ")\n"
     );
   };
 
@@ -45,36 +45,31 @@ export default function (componentString) {
   );
 
   // Store all instances of state modifying blocks in "match"
-  let match = componentString.match(regexPatterns.modifyStateRegex);
-
-  console.log("Found the match: " + match);
-
+  let matches = componentString.match(regexPatterns.modifyStateRegex);
+  console.log("---");
+  console.log("Matches: " + matches);
+  console.log("---");
+  console.log("");
   // Obtain the substring of each state-modifying block and pass it
   // To the replaceStateModifier function
   let lastMatchEndIndex = 0;
   let componentStringSections = [];
-  for (let i = 0; i < match.length; i++) {
+  for (let i = 0; i < matches.length; i++) {
     componentStringSections.push(
-      componentString.substring(lastMatchEndIndex, match.index)
+      componentString.substring(lastMatchEndIndex, matches[i].index)
     );
-    let matchRange = [match.index, match.index];
+    let matchRange = [
+      matches[i].index,
+      matches[i].index + matches[i][0].length
+    ];
 
-    //inneficient - just keep track of the last "last" index and add to that instead
-    for (let j = 0; j < i; j++) {
-      matchRange[0] += match[j].length;
-    }
-    console.log("match size: " + match.length);
-    console.log("current match index: " + i);
-    console.log("Current match: " + match[i]);
-    console.log("------");
-
-    matchRange[1] = matchRange[0] + match[i].length;
     lastMatchEndIndex = matchRange[1];
 
     let modifiedBlock = replaceStateModifier(
-      componentString.substring(matchRange[0], matchRange[1]),
+      matches[i],
       replaceStateInitialization
     );
+    console.log("Modified block: " + modifiedBlock);
     componentStringSections.push(modifiedBlock);
   }
   componentStringSections.push(componentString.substring(lastMatchEndIndex));
