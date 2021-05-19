@@ -6,7 +6,7 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    modifyStateRegex: /(?: *((this.state ?= ?{)|(this.setState\({)) *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)}\)?;?\n/,
+    modifyStateRegex: /(?: *((this.state ?= ?{)|(this.setState\({)) *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)}\)?;?\n/g,
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g
@@ -18,25 +18,17 @@ export default function (componentString) {
     initializeStateVariableReplacement: "const [$1, set$1] = useState($2);"
   };
 
-  const replaceStateInitialization = function (p1, p2, p3, p4) {
-    console.log(
-      "Making a replacement: " +
-        "const [" +
-        p1 +
-        ", set" +
-        p2 +
-        p3 +
-        "] = useState(p4);"
-    );
+  const replaceStateInitialization = function (p1, p2, p3) {
+    console.log("Making a replacement of " + p1 + ", " + p2 + ", " + p3);
     return (
       "const [" +
+      p1 +
       p2 +
-      p3 +
       ", set" +
-      p2.toUpperCase() +
-      p3 +
+      p1.toUpperCase() +
+      p2 +
       "] = useState(" +
-      p4 +
+      p3 +
       ")"
     );
   };
@@ -55,6 +47,8 @@ export default function (componentString) {
   // Store all instances of state modifying blocks in "match"
   let match = componentString.match(regexPatterns.modifyStateRegex);
 
+  console.log("Found the match: " + match);
+
   // Obtain the substring of each state-modifying block and pass it
   // To the replaceStateModifier function
   let lastMatchEndIndex = 0;
@@ -69,6 +63,10 @@ export default function (componentString) {
     for (let j = 0; j < i; j++) {
       matchRange[0] += match[j].length;
     }
+    console.log("match size: " + match.length);
+    console.log("current match index: " + i);
+    console.log("Current match: " + match[i]);
+    console.log("------");
 
     matchRange[1] = matchRange[0] + match[i].length;
     lastMatchEndIndex = matchRange[1];

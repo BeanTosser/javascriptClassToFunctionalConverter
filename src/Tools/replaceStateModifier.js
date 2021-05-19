@@ -13,8 +13,8 @@ export default function replaceStateModifier(
   // First, remove the outer assignment or setState() call and closing bracket
   let regexPattern = /(?:(?:.*|\s*){\s)([\s\S]*)(?:[^\S\n\r]*)(?:s*}[^\S\n\r]*\)?;?\s*)/;
   str = str.replace(regexPattern, "$1");
-
-  regexPattern = /([a-z])(\w*): ([^\s,]*),?/g;
+  console.log("str: " + str);
+  regexPattern = /([a-z])(\w*): ([^\s,]*),?\n?/g;
   // Next, apply the subPatternReplacementFunction to the string
   str = str.replace(regexPattern, subPatternReplacementFunction);
 
