@@ -19,7 +19,6 @@ export default function (componentString) {
   };
 
   const replaceStateInitialization = function (p1, p2, p3, p4) {
-    console.log("Making a replacement of " + p2 + ", " + p3 + ", " + p4);
     return (
       "const [" +
       p2 +
@@ -32,6 +31,12 @@ export default function (componentString) {
       ")\n"
     );
   };
+  
+  const replaceStateModification = function (p1, p2, p3, p4) {
+    return (
+      "set" + p2.toUpperCase() + p3 + "(" + p4 + ")" + "\n" 
+    );
+  }
 
   //Replace class definition with function definition
   componentString = componentString.replace(
@@ -46,32 +51,48 @@ export default function (componentString) {
 
   // Store all instances of state modifying blocks in "match"
   let matches = componentString.match(regexPatterns.modifyStateRegex);
-  console.log("---");
-  console.log("Matches: " + matches);
-  console.log("---");
-  console.log("");
   // Obtain the substring of each state-modifying block and pass it
   // To the replaceStateModifier function
   let lastMatchEndIndex = 0;
-  let componentStringSections = [];
+  let componentStringSections = []; // used to build the final code string piece-by-piece
   for (let i = 0; i < matches.length; i++) {
+    
+    let matchStartPosition = componentString.indexOf(matches[i]);
+    let matchEndPosition = matchStartPosition + matches[i].length;
+    
+    console.log("current match: " + matches[i]);
+    
+    // Determine whether this block _initializes_ or _modifies_ state
+    let isInitializer = matches[i].search(/^this.state ?=/) !== -1;
+    
+    /*
+     * Add all the code between the end of the last matched (state-setting) section 
+     * (or the beginning of the code) and the current one
+     */
     componentStringSections.push(
-      componentString.substring(lastMatchEndIndex, matches[i].index)
+      componentString.substring(lastMatchEndIndex, matchStartPosition)
     );
-    let matchRange = [
-      matches[i].index,
-      matches[i].index + matches[i][0].length
-    ];
 
-    lastMatchEndIndex = matchRange[1];
-
+    lastMatchEndIndex = matchEndPosition;
+    
+    let func;
+    if (isInitializer) {
+      func = replaceStateInitialization;
+    } else {
+      func = replaceStateModification;
+    }
+    
     let modifiedBlock = replaceStateModifier(
       matches[i],
-      replaceStateInitialization
+      func
     );
-    console.log("Modified block: " + modifiedBlock);
-    componentStringSections.push(modifiedBlock);
+    
+    
+    
+    componentStringSections.push(modifiedBlock); //Add the modified state-setting block to the final string
   }
+  
+  // Insert the remaining unmodified code into the final assembled code string
   componentStringSections.push(componentString.substring(lastMatchEndIndex));
   componentString = componentStringSections;
   return componentString;
