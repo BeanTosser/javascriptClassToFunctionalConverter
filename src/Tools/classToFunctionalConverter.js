@@ -10,7 +10,7 @@ export default function (componentString) {
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g,
-    initializeMemberVar: /this\.(?!state)(\w*) ?=/g
+    initializeMemberVar: /this\.(?!state)(\w*) ?=/
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
@@ -101,18 +101,49 @@ export default function (componentString) {
    ***/
 
   let initializedVars = [];
-  let memberVarSetLines = componentString.matchAll(regexPatterns.initializeMemberVar);
-  for(let i = 0; i < memberVarSetLines.length; i++){
-    let isInitialized = true;
-    let varName = memberVarSetLines[i].replace("$1");
-    if (initializedVars.indexOf(varName) >= 0){
-      //Var is already initialized, so just assign it
-      componentString.replace(new RegExp('', 'g'))
+  let memberVarSetLine = componentString.match(
+    regexPatterns.initializeMemberVar
+  );
+  let count = 0;
+  while (memberVarSetLine != null && count < 100) {
+    console.log("memberVarSetLine: " + memberVarSetLine[0]);
+    let varName = memberVarSetLine[0].replace(/.*this.(\w*) ?=/, "$1");
+    console.log("varname: " + varName);
+    console.log("Match? " + componentString.indexOf(memberVarSetLine[0]));
+    if (initializedVars.indexOf(varName) === -1) {
+      componentString = componentString.replace(
+        memberVarSetLine[0],
+        "let " + varName + " =",
+        1
+      );
+    } else {
+      componentString = componentString.replace(
+        memberVarSetLine[0],
+        varName + " =",
+        1
+      );
     }
-    for(let j = 0; j < initializedVars.length; j++){
-      if(initializedVars)
+    initializedVars.push(varName);
+    memberVarSetLine = componentString.match(regexPatterns.initializeMemberVar);
+    count++;
+  }
+  /*
+  let memberVarSetLines = componentString.match(
+    regexPatterns.initializeMemberVar
+  );
+  console.log("Member var sets: " + memberVarSetLines);
+  for (let i = 0; i < memberVarSetLines.length; i++) {
+    let varName = componentString.replace("$1");
+    console.log("Varname: " + varName);
+    if (initializedVars.indexOf(varName) >= 0) {
+      //Var is already initialized, so just assign it
+      componentString.replace("this." + varName, "let " + varName, 1);
+    } else {
+      co
+      mponentString.replace("this." + varName, "varName", 1);
     }
   }
+  */
 
   return componentString;
 }
