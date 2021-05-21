@@ -10,7 +10,8 @@ export default function (componentString) {
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g,
-    initializeMemberVar: /this\.(?!state)(\w*) ?=/
+    initializeMemberVar: /this\.(?!state)((?:\w*|\.)*) ?=/,
+    useMemberVar: /this\.(?!state)((?:\w*|\.)*)/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
@@ -127,6 +128,9 @@ export default function (componentString) {
     memberVarSetLine = componentString.match(regexPatterns.initializeMemberVar);
     count++;
   }
+
+  // Replace all other instances of member vars
+  componentString = componentString.replace(regexPatterns.useMemberVar, "$1");
   /*
   let memberVarSetLines = componentString.match(
     regexPatterns.initializeMemberVar
