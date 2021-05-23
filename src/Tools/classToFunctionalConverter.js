@@ -6,7 +6,7 @@ export default function (componentString) {
     classDeclarationRegex: /class ((\w*|\d*)+) extends React.Component *{ *\n/gim,
     // blah? remove outer constructor definition block and fix contents indentation accordingly
     constructorRegex: /( *constructor\(props\) *{ *\n)(?: *super\(props\);? *\n)(((?: {2}).*\n)*)/gim,
-    modifyStateRegex: /(?: *((this.state ?= ?{)|(this.setState\({)) *\n)((( *)([a-z]\w*): (\w*),? *\s*)*)}\)?;?\n/g,
+    modifyStateRegex: /[^\S\n]*((this.state ?= ?{)|(this.setState\({))([^\S\n]*\n)(([^\S\n]*)([a-zA-Z]\w*): (".*"|[\w*0-9*]*),?[^\S\n]*\n)*.*};?/g,
     setStateRegex: /(?: *this.setState ?\(\s*{ *\n)(( *)([a-z]\w*): (\w*),? *\s*)*};?/,
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g,
@@ -31,12 +31,12 @@ export default function (componentString) {
       p3 +
       "] = useState(" +
       p4 +
-      ")\n"
+      ")"
     );
   };
 
   const replaceStateModification = function (p1, p2, p3, p4) {
-    return "set" + p2.toUpperCase() + p3 + "(" + p4 + ");" + "\n";
+    return "set" + p2.toUpperCase() + p3 + "(" + p4 + ");\n";
   };
 
   //Replace class definition with function definition

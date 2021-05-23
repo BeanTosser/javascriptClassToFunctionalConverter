@@ -17,7 +17,7 @@ export default function replaceStateModifier(
   console.log("str: " + str);
 
   // Next, apply the subPatternReplacementFunction to the string
-  regexPattern = /([a-z])(\w*): ([^\s,]*),?\n?/g;
+  regexPattern = /([a-zA-Z])(\w*): (".*"|[\w*0-9*]*),?/g;
   str = str.replace(regexPattern, subPatternReplacementFunction);
   console.log("str after conversion: " + str);
   return str;
