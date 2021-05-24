@@ -1,3 +1,6 @@
+// TODO:
+// * remove state bindnigs (function.bind(this))
+
 import replaceStateModifier from "./replaceStateModifier.js";
 
 export default function (componentString) {
@@ -11,14 +14,18 @@ export default function (componentString) {
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g,
     initializeMemberVar: /this\.(?!state)((?:\w*|\.)*) ?=/,
-    useMemberVar: /this\.(?:state)?.?((?:\w*|\.)*)/g
+    useMemberVar: /this\.(?:state)?.?((?:\w*|\.)*)/g,
+    bindFunction: /this.(w*).bind\(this\)/g,
+    jsxBindFunction: /(w* ?= ?)this.(w*).bind\(this\)/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
     constructorReplacement: "$2",
     initializeStateReplacement: "$1",
     initializeStateVariableReplacement: "const [$1, set$1] = useState($2);",
-    initializeMemberVarReplacement: "let $1"
+    initializeMemberVarReplacement: "let $1",
+    bindFunction: "",
+    jsxBindFunction: "$1 = $2"
   };
 
   const replaceStateInitialization = function (p1, p2, p3, p4) {
