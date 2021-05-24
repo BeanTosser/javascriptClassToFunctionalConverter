@@ -11,7 +11,7 @@ export default function (componentString) {
     setStateVarRegex: /([a-z])(\w*): ([^\s,]*),?/g,
     useStateSetter: /set([a-z])\w*/g,
     initializeMemberVar: /this\.(?!state)((?:\w*|\.)*) ?=/,
-    useMemberVar: /this\.(?!state)((?:\w*|\.)*)/g
+    useMemberVar: /this\.(?:state)?.?((?:\w*|\.)*)/g
   };
   const replacements = {
     classDeclarationReplacement: "function $1(props) {\n",
@@ -36,7 +36,7 @@ export default function (componentString) {
   };
 
   const replaceStateModification = function (p1, p2, p3, p4) {
-    return "set" + p2.toUpperCase() + p3 + "(" + p4 + ");\n";
+    return "set" + p2.toUpperCase() + p3 + "(" + p4 + ");";
   };
 
   //Replace class definition with function definition
