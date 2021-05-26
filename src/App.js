@@ -1,6 +1,5 @@
 /*
  * conversion rules
- * - Every statement must be terminated by a semicolon
  * - ALL State variables must be initialized in the constructor
  *   via "state = {};"
  */
